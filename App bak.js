@@ -1,7 +1,6 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useReducer, useCallback } from "react";
-import { StyleSheet, Text, View, Alert } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MathJaxSvg } from 'react-native-mathjax-html-to-svg';
@@ -63,6 +62,15 @@ var DATA = `
 const QUESTIONS = JSON.parse(DATA);
 // ${ QUESTIONS['questions'][0]['question'] }
 
+const source = {
+  // html: `
+  //   ${ QUESTIONS['questions'][0]['question'] }
+  // ` 
+  html: `
+  Fractiooon : <math> x^2 </math>
+  `   
+};
+
 export const MATH_JAX_PATTERN_INLINE_BLOCK =
   /(?:\${2}|\\\[|\\(begin|end)\{.*?})[^<]*(?:\${2}|\\\]|\\(begin|end)\{.*?})/g;
 
@@ -85,14 +93,6 @@ const renderers = {
 };
 
 const MathJaxRenderer = props => {
-  Alert.alert('Alert Title', 'My Alert Msg', [
-    {
-      text: 'Cancel',
-      onPress: () => console.log('Cancel Pressed'),
-      style: 'cancel',
-    },
-    {text: 'OK', onPress: () => console.log('OK Pressed')},
-  ]);
   const theme = useThemeContext();
   const { TDefaultRenderer, ...restOfTheProps } = props;
   const {
@@ -126,14 +126,17 @@ const MathJaxRenderer = props => {
   );
 };
 
-const Engine = ({ children }) => {
+const Engine = ({ contentWidth, systemFonts, customHTMLElementModels, renderers, source }) => {
   return (
      <TRenderEngineProvider
         systemFonts={systemFonts}
         customHTMLElementModels={customHTMLElementModels}>
         <RenderHTMLConfigProvider
           renderers={renderers}>
-          {children}
+          <RenderHtml
+            contentWidth={contentWidth}
+            source={source}
+          />
         </RenderHTMLConfigProvider>
       </TRenderEngineProvider>
   );
@@ -141,9 +144,6 @@ const Engine = ({ children }) => {
 
 function Calculs() {
   const { width } = useWindowDimensions();
-  const source = {
-    html: `<math>\(x^2 + y^2 = zzz^2\) \\(x^2 + y^2 = z^2\\)</math>`
-  };
   return (
     // <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     //     <Text>Calculs</Text>
@@ -154,20 +154,13 @@ function Calculs() {
       renderers={renderers}
       customHTMLElementModels={customHTMLElementModels}
     />
-    // <Engine>
-      // contentWidth={width}
-      // source={source}
-      // renderers={renderers}
-      // customHTMLElementModels={customHTMLElementModels}
-    // </Engine>
-    // <Engine>
-    //   renderers={renderers}
+    // <Engine
+    //   contentWidth={width}
+    //   source={source}
+    //   systemFonts={systemFonts}
     //   customHTMLElementModels={customHTMLElementModels}
-    //   <RenderHtml 
-    //     contentWidth={width}
-    //     source={source}
-    //   />
-    // </Engine>
+    //   renderers={renderers}
+    // />
   );
 }
 
