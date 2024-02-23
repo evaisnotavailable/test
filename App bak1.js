@@ -1,14 +1,12 @@
 import 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useReducer, useCallback } from "react";
-import { StyleSheet, Text, View, Alert } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MathJaxSvg } from 'react-native-mathjax-html-to-svg';
 import { useWindowDimensions } from 'react-native';
-import RenderHtml, { HTMLElementModel, HTMLContentModel, TRenderEngineProvider, RenderHTMLConfigProvider, RenderHTMLSource, domNodeToHTMLString, defaultSystemFonts } from 'react-native-render-html';
+import RenderHtml, { HTMLElementModel, HTMLContentModel, TRenderEngineProvider, RenderHTMLConfigProvider, defaultSystemFonts } from 'react-native-render-html';
 
-var DEFAULT_FONT_SIZE = 16;
 var DATA = `
 {
   "questions": [
@@ -64,6 +62,15 @@ var DATA = `
 const QUESTIONS = JSON.parse(DATA);
 // ${ QUESTIONS['questions'][0]['question'] }
 
+const source = {
+  // html: `
+  //   ${ QUESTIONS['questions'][0]['question'] }
+  // ` 
+  html: `
+  Fractiooon : <math> x^2 </math>
+  `   
+};
+
 export const MATH_JAX_PATTERN_INLINE_BLOCK =
   /(?:\${2}|\\\[|\\(begin|end)\{.*?})[^<]*(?:\${2}|\\\]|\\(begin|end)\{.*?})/g;
 
@@ -85,27 +92,19 @@ const renderers = {
   math: MathJaxRenderer,
 };
 
-function MathJaxRenderer(props) {
-  // Alert.alert('Alert Title', 'My Alert Msg', [
-  //   {
-  //     text: 'Cancel',
-  //     onPress: () => console.log('Cancel Pressed'),
-  //     style: 'cancel',
-  //   },
-  //   {text: 'OK', onPress: () => console.log('OK Pressed')},
-  // ]);
-  // const theme = useThemeContext();
+const MathJaxRenderer = props => {
+  const theme = useThemeContext();
   const { TDefaultRenderer, ...restOfTheProps } = props;
   const {
     tnode: { domNode },
   } = props;
-  const html = useMemo(() => domNodeToHTMLString(domNode), [domNode]);
+  const html = React.useMemo(() => domNodeToHTMLString(domNode), [domNode]);
 
   const isBlock = !!html.match(BLOCK_PATTERN);
   return (
     <MathJaxSvg
       fontSize={DEFAULT_FONT_SIZE}
-      // color={theme.colors.para}
+      color={theme.colors.para}
       fontCache
       style={StyleSheet.flatten([
         {
@@ -115,46 +114,53 @@ function MathJaxRenderer(props) {
         isBlock
           ? {
               justifyContent: 'center',
-              // marginVertical: calculateFontSize(10),
+              marginVertical: calculateFontSize(10),
             }
           : {
               justifyContent: 'flex-start',
-              // marginVertical: calculateFontSize(7),
+              marginVertical: calculateFontSize(7),
             },
       ])}>
       {html}
     </MathJaxSvg>
-    // <View>
-    //   <Text>Custom Math Renderer Invoked</Text>
-    // </View>
   );
 };
 
-const Engine = ({ children }) => {
+const Engine = ({ contentWidth, systemFonts, customHTMLElementModels, renderers, source }) => {
   return (
-    <TRenderEngineProvider
-      systemFonts={systemFonts}
-      customHTMLElementModels={customHTMLElementModels}>
-      <RenderHTMLConfigProvider
-        renderers={renderers}>
-        {children}
-      </RenderHTMLConfigProvider>
-    </TRenderEngineProvider>
+     <TRenderEngineProvider
+        systemFonts={systemFonts}
+        customHTMLElementModels={customHTMLElementModels}>
+        <RenderHTMLConfigProvider
+          renderers={renderers}>
+          <RenderHtml
+            contentWidth={contentWidth}
+            source={source}
+          />
+        </RenderHTMLConfigProvider>
+      </TRenderEngineProvider>
   );
 }
 
 function Calculs() {
   const { width } = useWindowDimensions();
-  const source = {
-    html: `<math>\\(x^2 + y^2 = zz^2\\)</math>`
-  };
   return (
     // <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     //     <Text>Calculs</Text>
     // </View>
-    <Engine>
-      <RenderHTMLSource contentWidth={width} source={source} />
-    </Engine>
+    <RenderHtml
+      contentWidth={width}
+      source={source}
+      renderers={renderers}
+      customHTMLElementModels={customHTMLElementModels}
+    />
+    // <Engine
+    //   contentWidth={width}
+    //   source={source}
+    //   systemFonts={systemFonts}
+    //   customHTMLElementModels={customHTMLElementModels}
+    //   renderers={renderers}
+    // />
   );
 }
 

@@ -85,15 +85,19 @@ const renderers = {
   math: MathJaxRenderer,
 };
 
+// const simplifiedRenderers = {
+//   math: SimplifiedMathJaxRenderer,
+// };
+
 function MathJaxRenderer(props) {
-  // Alert.alert('Alert Title', 'My Alert Msg', [
-  //   {
-  //     text: 'Cancel',
-  //     onPress: () => console.log('Cancel Pressed'),
-  //     style: 'cancel',
-  //   },
-  //   {text: 'OK', onPress: () => console.log('OK Pressed')},
-  // ]);
+  Alert.alert('Alert Title', 'My Alert Msg', [
+    {
+      text: 'Cancel',
+      onPress: () => console.log('Cancel Pressed'),
+      style: 'cancel',
+    },
+    {text: 'OK', onPress: () => console.log('OK Pressed')},
+  ]);
   // const theme = useThemeContext();
   const { TDefaultRenderer, ...restOfTheProps } = props;
   const {
@@ -130,6 +134,14 @@ function MathJaxRenderer(props) {
   );
 };
 
+// function SimplifiedMathJaxRenderer(props) {
+//   return (
+    // <View>
+    //   <Text>Custom Math Renderer Invoked</Text>
+    // </View>
+//   );
+// }
+
 const Engine = ({ children }) => {
   return (
     <TRenderEngineProvider
@@ -146,7 +158,7 @@ const Engine = ({ children }) => {
 function Calculs() {
   const { width } = useWindowDimensions();
   const source = {
-    html: `<math>\\(x^2 + y^2 = zz^2\\)</math>`
+    html: `<math>\(x^2 + y^2 = z^2\) \\(x^2 + y^2 = zz^2\\)</math>`
   };
   return (
     // <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
