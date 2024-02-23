@@ -6,9 +6,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MathJaxSvg } from 'react-native-mathjax-html-to-svg';
 import { useWindowDimensions } from 'react-native';
-import RenderHtml, { HTMLElementModel, HTMLContentModel, TRenderEngineProvider, RenderHTMLConfigProvider, RenderHTMLSource, domNodeToHTMLString, defaultSystemFonts } from 'react-native-render-html';
+import RenderHtml, { HTMLElementModel, HTMLContentModel, TRenderEngineProvider, RenderHTMLConfigProvider, RenderHTMLSource, defaultSystemFonts } from 'react-native-render-html';
 
-var DEFAULT_FONT_SIZE = 16;
 var DATA = `
 {
   "questions": [
@@ -85,11 +84,7 @@ const renderers = {
   math: MathJaxRenderer,
 };
 
-// const simplifiedRenderers = {
-//   math: SimplifiedMathJaxRenderer,
-// };
-
-function MathJaxRenderer(props) {
+const MathJaxRenderer = props => {
   Alert.alert('Alert Title', 'My Alert Msg', [
     {
       text: 'Cancel',
@@ -98,18 +93,18 @@ function MathJaxRenderer(props) {
     },
     {text: 'OK', onPress: () => console.log('OK Pressed')},
   ]);
-  // const theme = useThemeContext();
+  const theme = useThemeContext();
   const { TDefaultRenderer, ...restOfTheProps } = props;
   const {
     tnode: { domNode },
   } = props;
-  const html = useMemo(() => domNodeToHTMLString(domNode), [domNode]);
+  const html = React.useMemo(() => domNodeToHTMLString(domNode), [domNode]);
 
   const isBlock = !!html.match(BLOCK_PATTERN);
   return (
     <MathJaxSvg
       fontSize={DEFAULT_FONT_SIZE}
-      // color={theme.colors.para}
+      color={theme.colors.para}
       fontCache
       style={StyleSheet.flatten([
         {
@@ -119,31 +114,28 @@ function MathJaxRenderer(props) {
         isBlock
           ? {
               justifyContent: 'center',
-              // marginVertical: calculateFontSize(10),
+              marginVertical: calculateFontSize(10),
             }
           : {
               justifyContent: 'flex-start',
-              // marginVertical: calculateFontSize(7),
+              marginVertical: calculateFontSize(7),
             },
       ])}>
       {html}
     </MathJaxSvg>
-    // <View>
-    //   <Text>Custom Math Renderer Invoked</Text>
-    // </View>
   );
 };
 
-// function SimplifiedMathJaxRenderer(props) {
-//   return (
-    // <View>
-    //   <Text>Custom Math Renderer Invoked</Text>
-    // </View>
-//   );
-// }
-
 const Engine = ({ children }) => {
   return (
+    //  <TRenderEngineProvider
+    //     systemFonts={systemFonts}
+    //     customHTMLElementModels={customHTMLElementModels}>
+    //     <RenderHTMLConfigProvider
+    //       renderers={renderers}>
+    //       {children}
+    //     </RenderHTMLConfigProvider>
+    //   </TRenderEngineProvider>
     <TRenderEngineProvider
       systemFonts={systemFonts}
       customHTMLElementModels={customHTMLElementModels}>
@@ -152,21 +144,47 @@ const Engine = ({ children }) => {
         {children}
       </RenderHTMLConfigProvider>
     </TRenderEngineProvider>
+    
+    // <TRenderEngineProvider systemFonts={systemFonts} customHTMLElementModels={customHTMLElementModels}>
+    //   <RenderHTMLConfigProvider renderers={renderers}>
+    //     {children}  
+    //   </RenderHTMLConfigProvider>
+    // </TRenderEngineProvider>
   );
 }
 
 function Calculs() {
   const { width } = useWindowDimensions();
   const source = {
-    html: `<math>\(x^2 + y^2 = z^2\) \\(x^2 + y^2 = zz^2\\)</math>`
+    html: `<math>\(x^2 + y^2 = z^2\) \\(x^2 + y^2 = zzzzzzzzzzzz^2\\)</math>`
   };
   return (
     // <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     //     <Text>Calculs</Text>
     // </View>
+    // <RenderHtml
+    //   contentWidth={width}
+    //   source={source}
+    //   renderers={renderers}
+    //   customHTMLElementModels={customHTMLElementModels}
+    // />
     <Engine>
       <RenderHTMLSource contentWidth={width} source={source} />
     </Engine>
+    // <Engine>
+      // contentWidth={width}
+      // source={source}
+      // renderers={renderers}
+      // customHTMLElementModels={customHTMLElementModels}
+    // </Engine>
+    // <Engine>
+    //   renderers={renderers}
+    //   customHTMLElementModels={customHTMLElementModels}
+    //   <RenderHtml 
+    //     contentWidth={width}
+    //     source={source}
+    //   />
+    // </Engine>
   );
 }
 
