@@ -9,82 +9,6 @@ import { useWindowDimensions } from 'react-native';
 import RenderHtml, { HTMLElementModel, HTMLContentModel, TRenderEngineProvider, RenderHTMLConfigProvider, RenderHTMLSource, domNodeToHTMLString, defaultSystemFonts } from 'react-native-render-html';
 
 var DEFAULT_FONT_SIZE = 18;
-// var DATA = `
-// {
-//   "questions": [
-//     {
-//       "chapitre": "calculs",
-//       "titre": "Simplification de fraction",
-//       "question": "Quelle est la forme simplifiée de la fraction <math>\\frac{48}{64}</math> ?",
-//       "reponses": [
-//         "<math>\\frac{3}{4}</math>",
-//         "<math>\\frac{4}{5}</math>",
-//         "<math>\\frac{1}{2}</math>",
-//         "<math>\\frac{2}{3}</math>"
-//       ],
-//       "solution": "La forme simplifiée de <math>\\frac{48}{64}</math> est <math>\\frac{3}{4}</math>.",
-//       "type": "qcm",
-//       "difficulte": 1
-//     },
-//     {
-//       "chapitre": "calculs",
-//       "titre": "Développement d'expression",
-//       "question": "Quel est le résultat du développement de <math>(x - 2)(x + 3)</math> ?",
-//       "reponses": [
-//         "<math>x^2 + x - 6</math>",
-//         "<math>x^2 - x - 6</math>",
-//         "<math>x^2 + 5x - 6</math>",
-//         "<math>x^2 - 5x + 6</math>"
-//       ],
-//       "solution": "Le résultat du développement de <math>(x - 2)(x + 3)</math> est <math>x^2 + x - 6</math>.",
-//       "type": "qcm",
-//       "difficulte": 2
-//     },
-//     {
-//       "chapitre": "calculs",
-//       "titre": "Factorisation",
-//       "question": "Quelle est la factorisation de <math>x^2 - 5x + 6</math> ?",
-//       "reponses": [
-//         "<math>(x - 2)(x - 3)</math>",
-//         "<math>(x - 1)(x - 6)</math>",
-//         "<math>(x + 2)(x + 3)</math>",
-//         "<math>(x + 3)(x - 2)</math>"
-//       ],
-//       "solution": "La factorisation de <math>x^2 - 5x + 6</math> est <math>(x - 2)(x - 3)</math>.",
-//       "type": "qcm",
-//       "difficulte": 2
-//     },
-//     {
-//       "chapitre": "calculs",
-//       "titre": "Calcul de racine carrée",
-//       "question": "Quelle est la valeur de <math>\\sqrt{36}</math> ?",
-//       "reponses": [
-//         "6",
-//         "12",
-//         "18",
-//         "3"
-//       ],
-//       "solution": "La valeur de <math>\\sqrt{36}</math> est 6.",
-//       "type": "qcm",
-//       "difficulte": 1
-//     },
-//     {
-//       "chapitre": "calculs",
-//       "titre": "Calcul avec puissances",
-//       "question": "Quel est le résultat de <math>2^3 \\times 2^2</math> ?",
-//       "reponses": [
-//         "16",
-//         "32",
-//         "8",
-//         "64"
-//       ],
-//       "solution": "Le résultat de <math>2^3 \\times 2^2</math> est 32, car en utilisant la propriété des puissances, on obtient <math>2^{3+2} = 2^5 = 32</math>.",
-//       "type": "qcm",
-//       "difficulte": 2
-//     }
-//   ]
-// }
-// `;
 var DATA = {
   "questions": [
     {
@@ -162,11 +86,21 @@ var DATA = JSON.stringify(DATA);
 var QUESTIONS = JSON.parse(DATA);
 // ${ QUESTIONS['questions'][0]['question'] }
 
-export const MATH_JAX_PATTERN_INLINE_BLOCK =
+//export in front of const
+//Matches \[ and others things I don't really use
+const MATH_JAX_PATTERN_INLINE_BLOCK =
   /(?:\${2}|\\\[|\\(begin|end)\{.*?})[^<]*(?:\${2}|\\\]|\\(begin|end)\{.*?})/g;
 
-export const MATH_JAX_PATTERN_INLINE =
+//Matches \( but inside html tags
+const MATH_JAX_PATTERN_INLINE_HTML =
   /<\s*\s*.*\s*>*(?:\\\(|\\(begin|end)\{.*?})[^<]*(?:\\\)|\\(begin|end)\{.*?})*<\s*\/\s*.*\s*>/g;
+
+//Matches \( without html tags
+const MATH_JAX_PATTERN_INLINE = /(?:\\\(.*?\\\))/gs;
+//Old one that doesn't take into account the \ inside the latex itself
+// const MATH_JAX_PATTERN_INLINE = /(?:\\\(|\\begin\{.*?\})[^\\]*(?:\\\)|\\end\{.*?\})/g;
+
+const BLOCK_PATTERN = /(?:\${1}|\\\[|\\(begin|end)\{.*?})/g;
 
 const customHTMLElementModels = {
   math: HTMLElementModel.fromCustomModel({
@@ -175,8 +109,6 @@ const customHTMLElementModels = {
   })
 };
 
-const BLOCK_PATTERN = /(?:\${1}|\\\[|\\(begin|end)\{.*?})/g;
-
 const systemFonts = [...defaultSystemFonts, 'Mysuperfont']
 
 const renderers = {
@@ -184,14 +116,6 @@ const renderers = {
 };
 
 function MathJaxRenderer(props) {
-  // Alert.alert('Alert Title', QUESTIONS['questions'][0]['question'], [
-  //   {
-  //     text: 'Cancel',
-  //     onPress: () => console.log('Cancel Pressed'),
-  //     style: 'cancel',
-  //   },
-  //   {text: 'OK', onPress: () => console.log('OK Pressed')},
-  // ]);
   // const theme = useThemeContext();
   const { TDefaultRenderer, ...restOfTheProps } = props;
   const {
@@ -199,7 +123,10 @@ function MathJaxRenderer(props) {
   } = props;
   const html = useMemo(() => domNodeToHTMLString(domNode), [domNode]);
 
-  const isBlock = !!html.match(BLOCK_PATTERN);
+  // const isBlock = !!html.match(BLOCK_PATTERN);
+  const isBlock = !html.match(MATH_JAX_PATTERN_INLINE);
+  console.log(isBlock);
+  // console.log(html.match(MATH_JAX_PATTERN_INLINE));
   return (
     <MathJaxSvg
       fontSize={DEFAULT_FONT_SIZE}
@@ -217,6 +144,10 @@ function MathJaxRenderer(props) {
             }
           : {
               justifyContent: 'flex-start',
+              flexDirection: 'row', 
+              flexWrap: 'wrap', 
+              alignItems: 'center', 
+              flexShrink: 1
               // marginVertical: calculateFontSize(7),
             },
       ])}>
@@ -243,13 +174,31 @@ function Calculs() {
   // const source = {
   //   html: `<math>\\(x^2 + y^2 = r^2\\)</math>`
   // };
+  // const source = {
+  //   html: `\\(x^2 + y^2 = r^2\\)`
+  // };
+  // console.log(QUESTIONS['questions'][0]['question']);
   const source = {
-    html: `<math>${ QUESTIONS['questions'][0]['question'] }</math>`
+    html: `${ QUESTIONS['questions'][0]['question'] }`
   };
+  const foundPatterns = source.html.match(MATH_JAX_PATTERN_INLINE);
+  console.log("1) "+source.html);
+  console.log("2) "+foundPatterns);
+  source.html = source.html.replace(MATH_JAX_PATTERN_INLINE, (match) => {
+    return `<math>${match}</math>`;
+  });
+  console.log("3) "+source.html);
+
+  const tagsStyles = {
+    math: {
+      display: 'inline!important'
+    }
+  };
+
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Engine>
-        <RenderHTMLSource contentWidth={width} source={source} />
+        <RenderHTMLSource contentWidth={width} source={source} tagsStyles={tagsStyles} />
       </Engine>
     </View>
     
