@@ -8,7 +8,7 @@ import { MathJaxSvg } from 'react-native-mathjax-html-to-svg';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml, { HTMLElementModel, HTMLContentModel, TRenderEngineProvider, RenderHTMLConfigProvider, RenderHTMLSource, domNodeToHTMLString, defaultSystemFonts } from 'react-native-render-html';
 
-var DEFAULT_FONT_SIZE = 16;
+var DEFAULT_FONT_SIZE = 18;
 var DATA = `
 {
   "questions": [
@@ -146,15 +146,15 @@ const Engine = ({ children }) => {
 function Calculs() {
   const { width } = useWindowDimensions();
   const source = {
-    html: `<math>\\(x^2 + y^2 = zz^2\\)</math>`
+    html: `<math>\\(x^2 + y^2 = z^2\\)</math>`
   };
   return (
-    // <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    //     <Text>Calculs</Text>
-    // </View>
-    <Engine>
-      <RenderHTMLSource contentWidth={width} source={source} />
-    </Engine>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Engine>
+        <RenderHTMLSource contentWidth={width} source={source} />
+      </Engine>
+    </View>
+    
   );
 }
 
